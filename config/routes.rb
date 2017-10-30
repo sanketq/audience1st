@@ -5,6 +5,8 @@ Rails.application.routes.draw do
 
     root :to => 'customers#show'
 
+    match '/auth/:provider/callback' => "newsessions#create", via: [:get, :post]
+
     resources :bulk_downloads
     resources :account_codes
     resources :imports, :except => [:show] do
@@ -52,6 +54,7 @@ Rails.application.routes.draw do
 
     resources :donations, :only  => [:index, :update]
 
+    
     # RSS
 
     get '/info/ticket_rss' => 'info#ticket_rss'

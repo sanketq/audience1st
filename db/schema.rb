@@ -11,13 +11,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170628202024) do
+ActiveRecord::Schema.define(version: 20171030065519) do
 
   create_table "account_codes", force: :cascade do |t|
     t.string "name",        limit: 40,  default: "", null: false
     t.string "code",        limit: 255
     t.string "description", limit: 255
   end
+
+  create_table "authorizations", force: :cascade do |t|
+    t.string   "provider"
+    t.string   "uid"
+    t.string   "name"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.integer  "customer_id"
+  end
+
+  add_index "authorizations", ["customer_id"], name: "index_authorizations_on_customer_id"
 
   create_table "bulk_downloads", force: :cascade do |t|
     t.string "vendor",       limit: 255
@@ -87,6 +98,14 @@ ActiveRecord::Schema.define(version: 20170628202024) do
 
   add_index "customers_labels", ["customer_id"], name: "index_customers_labels_on_customer_id"
   add_index "customers_labels", ["label_id"], name: "index_customers_labels_on_label_id"
+
+  create_table "identities", force: :cascade do |t|
+    t.string   "name"
+    t.string   "email"
+    t.string   "password_digest"
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+  end
 
   create_table "imports", force: :cascade do |t|
     t.string   "name",              limit: 255
