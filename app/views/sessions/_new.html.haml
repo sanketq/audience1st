@@ -1,6 +1,6 @@
-= form_tag session_path do
+= form_tag 'auth/identity/callback' do
   %label{:for=>:customer_email} Email
-  = text_field_tag 'email', @email, :size => 20
+  = text_field_tag 'auth_key', @email, :size => 20
   %br/
 
   %label{:for=>:customer_password} Password
@@ -18,4 +18,3 @@
       = check_box_tag 'remember_me', '1', @remember_me
       Remember me for next time (Don't use on public/shared computers)
     = submit_tag 'Login', :disable_with => 'Logging in...'
-

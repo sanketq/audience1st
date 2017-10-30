@@ -3,7 +3,14 @@ class NewsessionsController < ApplicationController
   end
 
   def create
+
+
+    puts("here")
     authorization = Authorization.from_omniauth(env["omniauth.auth"])
+    if (authorization && authorization.customer == nil)
+      return redirect_to new_customer_path
+    end
+    puts(authorization)
     session[:user_id] = authorization.id
     redirect_to root_url, notice: "Signed in!"
   end

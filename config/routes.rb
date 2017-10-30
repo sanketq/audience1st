@@ -54,7 +54,7 @@ Rails.application.routes.draw do
 
     resources :donations, :only  => [:index, :update]
 
-    
+
     # RSS
 
     get '/info/ticket_rss' => 'info#ticket_rss'
@@ -157,7 +157,7 @@ Rails.application.routes.draw do
 
     # special shortcuts
 
-    get '/login' => 'sessions#new', :as => 'login'
+    get '/login' => 'sessions#create', :as => 'login'
     match '/logout' => 'sessions#destroy', :as => 'logout', :via => [:get, :post]
 
     # Routes for viewing and refunding orders

@@ -6,6 +6,7 @@ class Authorization < ActiveRecord::Base
   	end
 
   	def self.create_with_omniauth(auth)
+			puts(auth)
 	    create! do |user|
 	      user.provider = auth["provider"]
 	      user.uid = auth["uid"]
