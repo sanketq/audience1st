@@ -1,7 +1,7 @@
 class Customer < ActiveRecord::Base
 
   acts_as_reportable
-  
+
   require_dependency 'customer/special_customers'
   require_dependency 'customer/secret_question'
   require_dependency 'customer/scopes'
@@ -21,7 +21,7 @@ class Customer < ActiveRecord::Base
   has_many :showdates, :through => :vouchers
   has_many :orders, -> { where( 'sold_on IS NOT NULL').order('sold_on DESC') }
   has_many :authorizations
-  
+
   # nested has_many :through doesn't work in Rails 2, so we define a method instead
   # has_many :shows, :through => :showdates
   def shows ; self.showdates.map(&:show).uniq ; end
@@ -31,7 +31,7 @@ class Customer < ActiveRecord::Base
   has_many :donations
   has_many :retail_items
   has_many :items               # the superclass of vouchers,donations,retail_items
-  
+
   validates_format_of :email, :if => :self_created?, :with => /\A\S+@\S+\z/
 
   EMAIL_UNIQUENESS_ERROR_MESSAGE = 'has already been registered.'
@@ -43,14 +43,14 @@ class Customer < ActiveRecord::Base
   def unique_email_error
     self.errors[:email].include? EMAIL_UNIQUENESS_ERROR_MESSAGE
   end
-    
+
   validates_format_of :zip, :if => :self_created?, :with => /\A^[0-9]{5}-?([0-9]{4})?\z/, :allow_blank => true
   validate :valid_or_blank_address?, :if => :self_created?
   validate :valid_as_gift_recipient?, :if => :gift_recipient_only
 
   NAME_REGEX = /\A[-A-Za-z0-9_\/#\@'":;,.%\ ()&]+\z/
   NAME_FORBIDDEN_CHARS = /[^-A-Za-z0-9_\/#\@'":;,.%\ ()&]/
-  
+
   BAD_NAME_MSG = "must not include special characters like <, >, !, etc."
 
   validates_length_of :first_name, :within => 1..50
@@ -59,15 +59,16 @@ class Customer < ActiveRecord::Base
   validates_length_of :last_name, :within => 1..50
   validates_format_of :last_name, :with => NAME_REGEX,  :message => BAD_NAME_MSG
 
+  #might not work
   attr_accessor :validate_password
-  validates_length_of :password, :on => :create, :if => :self_created?, :in => 1..20
-  validates_length_of :password, :on => :update, :if => :validate_password, :in => 1..20
+  #validates_length_of :password, :on => :create, :if => :self_created?, :in => 1..20
+  #validates_length_of :password, :on => :update, :if => :validate_password, :in => 1..20
   validates_confirmation_of :password, :if => :self_created?
 
-  
 
-  attr_accessor :force_valid         
-  attr_accessor :gift_recipient_only 
+
+  attr_accessor :force_valid
+  attr_accessor :gift_recipient_only
   attr_accessor :password
 
   attr_accessible :first_name, :last_name, :street, :city, :state, :zip,
@@ -104,7 +105,7 @@ class Customer < ActiveRecord::Base
     now = Time.now
     vouchers.select { |v| now <= Time.at_end_of_season(v.season) }
   end
-  
+
 
   #----------------------------------------------------------------------
   #  private variables
@@ -128,10 +129,10 @@ class Customer < ActiveRecord::Base
     end
     true
   end
-    
+
   def valid_and_unique(email)
     if email.blank?
-      true 
+      true
     elsif !email.match(/^[\w\d]+@[\w\d]+/)
       false
     else
@@ -160,9 +161,9 @@ class Customer < ActiveRecord::Base
   def valid_or_blank_address?
     blank_mailing_address? || valid_mailing_address?
   end
-  
+
   # when customer is saved, possibly update their email opt-in status
-  # with external mailing list.  
+  # with external mailing list.
 
   @@email_sync_disabled = nil
   def self.enable_email_sync ;  @@email_sync_disabled = nil ; end
@@ -198,8 +199,8 @@ class Customer < ActiveRecord::Base
     subscriber? ? Option.welcome_page_subscriber_message.to_s :
       Option.welcome_page_nonsubscriber_message.to_s
   end
-  
-  
+
+
   #----------------------------------------------------------------------
   #  public methods
   #----------------------------------------------------------------------
@@ -214,7 +215,7 @@ class Customer < ActiveRecord::Base
     # :BUG:
     route =~ /\/customers\/(-?\d+)$/ ? $1 : nil
   end
-  
+
   # message that will appear in flash[:notice] once only, at login
   def login_message
     msg = ["Welcome, #{full_name}"]
@@ -233,9 +234,9 @@ class Customer < ActiveRecord::Base
 
   def update_labels!(hash)
     self.set_labels(hash)
-    self.save! 
+    self.save!
   end
-  
+
   def valid_as_gift_recipient?
     # must have first and last name, mailing addr, and at least one
     #  phone or email
@@ -280,14 +281,14 @@ class Customer < ActiveRecord::Base
   # convenience accessors
 
   def to_s
-    "[#{id}] #{full_name} " << (email.blank? ? '' : "<#{email}> ") 
+    "[#{id}] #{full_name} " << (email.blank? ? '' : "<#{email}> ")
   end
 
   def inspect
     self.to_s <<
       (street.blank? ? '' : " #{street}, #{city} #{state} #{zip} #{day_phone}")
   end
-  
+
   def full_name
     "#{first_name.name_capitalize unless first_name.blank?} #{last_name.name_capitalize unless last_name.blank?}"
   end
@@ -407,7 +408,7 @@ class Customer < ActiveRecord::Base
   def role_value
     Customer.role_value(self.role)
   end
-  
+
   # you can grant someone else a particular role as long as it's less
   # than your own.
 
@@ -531,7 +532,7 @@ EOSQL1
     Customer.where(*conds_ary).order('last_name')
   end
 
-  
+
   # Match on any content column of a class
 
   def self.match_any_content_column(string)
@@ -540,7 +541,7 @@ EOSQL1
     a.unshift(cols.map { |c| "(#{c.name} LIKE ?)" }.join(" OR "))
   end
 
-    
+
 
   # Override content_columns method to omit password hash and salt
   def self.content_columns
@@ -584,7 +585,7 @@ EOSQL1
       (blacklist ? "true" : ""),
       (e_blacklist ? "true" : "")
     ]
-    
+
   end
 
   # support for find_unique
@@ -605,5 +606,3 @@ EOSQL1
     m && m.length == 1 ?  m.first : nil
   end
 end
-
-

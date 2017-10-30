@@ -83,9 +83,9 @@ class CustomersController < ApplicationController
         :logged_in_id => current_user.id,
         :comments => flash[:notice])
       if @customer.email_changed? && @customer.valid_email_address? &&
-          params[:dont_send_email].blank? 
+          params[:dont_send_email].blank?
         # send confirmation email
-        email_confirmation(:confirm_account_change,@customer, 
+        email_confirmation(:confirm_account_change,@customer,
                            "updated your email address in our system")
       end
       redirect_to customer_path(@customer)
@@ -142,9 +142,12 @@ class CustomersController < ApplicationController
     @is_admin = current_user.try(:is_boxoffice)
     @customer = Customer.new
   end
-  
+
   def user_create
     @customer = Customer.new(params[:customer])
+    @authorization = Authorization.find(params["authorization"])
+    @authorization.customer = @customer
+    @authorization.save
     if @gCheckoutInProgress && @customer.day_phone.blank?
       flash[:alert] = "Please provide a contact phone number in case we need to contact you about your order."
       render :action => 'new'
@@ -306,7 +309,7 @@ class CustomersController < ApplicationController
   end
 
   private
- 
+
   def delete_admin_only_attributes(params)
     Customer.extra_attributes.each { |a| params.delete(a) }
     params.delete(:comments)

@@ -1,5 +1,5 @@
 - @customer = customer if defined?(customer)
-- disabled =  defined?(passive) && passive 
+- disabled =  defined?(passive) && passive
 - hide ||= []
 - hide = hide.to_a
 
@@ -17,11 +17,11 @@
       = f.text_field :first_name, :size => 16, :maxlength => 40, :readonly => disabled
       %br/
       %label.strong{:for => 'customer_last_name'} Last name
-      = f.text_field :last_name, :size => 16, :maxlength => 40, :readonly => disabled 
+      = f.text_field :last_name, :size => 16, :maxlength => 40, :readonly => disabled
       %br/
       %br/
       %label.strong{:for => 'customer_street'} Street
-      = f.text_field :street, :readonly => disabled  
+      = f.text_field :street, :readonly => disabled
       %br/
       %label.strong{:for => 'customer_city'} City
       = f.text_field :city, :size => 16, :maxlength => 32, :readonly => disabled
@@ -59,4 +59,3 @@
       = date_select 'customer', 'birthday', :include_blank => true, :order => [:month, :day]
 
   /[eoform:customer]
-
