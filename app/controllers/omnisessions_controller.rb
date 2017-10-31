@@ -1,4 +1,4 @@
-class NewsessionsController < ApplicationController
+class OmnisessionsController < ApplicationController
   def new
     redirect_to customer_path(current_user) and return if logged_in?
     @page_title = "Login or Create Account"
@@ -10,18 +10,15 @@ class NewsessionsController < ApplicationController
   end
 
   def create
-
-
     authorization = Authorization.from_omniauth(env["omniauth.auth"])
-    puts("WE ARE HERE here")
     if (authorization && authorization.customer == nil)
-      return redirect_to new_customer_path({:authorization => authorization})
+      redirect_to new_customer_path({:authorization => authorization}) and return
     end
     #do we need this?
-    session[:authorization_id] = authorization.id
+    #session[:authorization_id] = authorization.id
     u = authorization.customer
-    render :action => :new
-    u
+    @current_user = u
+    create_session(u)
   end
 
   def destroy

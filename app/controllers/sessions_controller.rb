@@ -1,6 +1,7 @@
 class SessionsController < ApplicationController
 
   def new
+
     redirect_to customer_path(current_user) and return if logged_in?
     @page_title = "Login or Create Account"
     if (@gCheckoutInProgress)
@@ -15,16 +16,18 @@ class SessionsController < ApplicationController
   end
 
   def create
-    create_session do |params|
-      u = Customer.authenticate(params[:email], params[:password])
-      if u.nil? || !u.errors.empty?
-        note_failed_signin(u)
-        @email = params[:email]
-        @remember_me = params[:remember_me]
-        render :action => :new
-      end
-      u
-    end
+    #create_session(params[:customer])
+    render :action => :new
+  #  create_session do |params|
+  #    u = Customer.authenticate(params[:email], params[:password])
+  #    if u.nil? || !u.errors.empty?
+  #      note_failed_signin(u)
+  #      @email = params[:email]
+  #      @remember_me = params[:remember_me]
+  #      render :action => :new
+  #    end
+  #    u
+  #  end
   end
 
   def create_from_secret
@@ -60,10 +63,10 @@ class SessionsController < ApplicationController
     end
     redirect_to :back
   end
-  
+
 
   protected
-  
+
 
   # Track failed login attempts
   def note_failed_signin(user)

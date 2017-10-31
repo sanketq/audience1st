@@ -5,7 +5,7 @@ Rails.application.routes.draw do
 
     root :to => 'customers#show'
 
-    match '/auth/:provider/callback' => "newsessions#create", via: [:get, :post]
+    match '/auth/:provider/callback' => "omnisessions#create", via: [:get, :post]
 
     resources :bulk_downloads
     resources :account_codes

@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
 
   include AuthenticatedSystem
   include FilenameUtils
-  
+
   force_ssl if Rails.env.production?
 
   require 'csv'
@@ -147,7 +147,8 @@ class ApplicationController < ActionController::Base
 
   def create_session(u = nil)
     logout_keeping_session!
-    @user = u || yield(params)
+    @user = u
+
     if @user && @user.errors.empty?
       # Protects against session fixation attacks, causes request forgery
       # protection if user resubmits an earlier form using back
@@ -164,6 +165,7 @@ class ApplicationController < ActionController::Base
       reset_shopping unless @gCheckoutInProgress
       session[:new_session] = true
       redirect_after_login(@user)
+
     end
   end
 
@@ -174,6 +176,7 @@ class ApplicationController < ActionController::Base
     # displaying login-time messages, etc.
     session.delete(:new_session)
   end
-  
-end
 
+
+
+end
