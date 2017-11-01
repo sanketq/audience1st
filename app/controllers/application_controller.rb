@@ -148,7 +148,6 @@ class ApplicationController < ActionController::Base
   def create_session(u = nil)
     logout_keeping_session!
     @user = u
-
     if @user && @user.errors.empty?
       # Protects against session fixation attacks, causes request forgery
       # protection if user resubmits an earlier form using back
