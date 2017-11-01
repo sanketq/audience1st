@@ -162,6 +162,7 @@ Rails.application.routes.draw do
 
     # Routes for viewing and refunding orders
     resources :orders, :only => [:index, :show, :update]
+    post '/sessions/oldsession/create' => 'sessions#oldcreate', :as => 'oldcreate'
 
   end
 end

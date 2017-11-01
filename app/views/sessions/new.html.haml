@@ -1,8 +1,9 @@
 - unless @gCheckoutInProgress
   %h1.page_heading.center= "#{Option.venue} Online Box Office"
-  
+
 #have_account
   %h2 Subscribers and Returning Customers
+  = render :partial => 'sessions/oldnew'
   = render :partial => 'sessions/new'
 
 #new_customer
@@ -16,5 +17,5 @@
     %br
     = link_to_if_option_text :homepage_subscription_sales_text, store_path, {:class => 'genButton'}
     %br
-    
+
 .clear

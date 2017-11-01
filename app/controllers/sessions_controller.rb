@@ -1,5 +1,9 @@
 class SessionsController < ApplicationController
-
+  def oldcreate
+    u = Customer.authenticate(params[:email], params[:password])
+    @current_user = u
+    create_session(u)
+  end
   def new
 
     redirect_to customer_path(current_user) and return if logged_in?
@@ -74,5 +78,8 @@ class SessionsController < ApplicationController
     flash[:alert] << "because #{user.errors.as_html}" if user
     Rails.logger.warn "Failed login for '#{params[:email]}' from #{request.remote_ip} at #{Time.now.utc}: #{flash[:alert]}"
   end
+
+
+
 
 end
