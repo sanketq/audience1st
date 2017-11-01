@@ -15,19 +15,17 @@ class SessionsController < ApplicationController
     redirect_after_login(current_user) and return if logged_in?
   end
 
+
   def create
-    #create_session(params[:customer])
-    render :action => :new
-  #  create_session do |params|
-  #    u = Customer.authenticate(params[:email], params[:password])
-  #    if u.nil? || !u.errors.empty?
-  #      note_failed_signin(u)
-  #      @email = params[:email]
-  #      @remember_me = params[:remember_me]
-  #      render :action => :new
-  #    end
-  #    u
-  #  end
+    identity = Identity.from_omniauth(env["omniauth.auth"])
+    if (identity && identity.customer == nil)
+      redirect_to new_customer_path({:identity => identity}) and return
+    end
+    #do we need this?
+    #session[:identity_id] = identity.id
+    u = identity.customer
+    @current_user = u
+    create_session(u)
   end
 
   def create_from_secret
@@ -76,3 +74,4 @@ class SessionsController < ApplicationController
   end
 
 end
+# auth = request.env['omniauth.auth']

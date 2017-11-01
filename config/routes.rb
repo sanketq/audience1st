@@ -5,7 +5,7 @@ Rails.application.routes.draw do
 
     root :to => 'customers#show'
 
-    match '/auth/:provider/callback' => "omnisessions#create", via: [:get, :post]
+    match '/auth/:provider/callback' => "sessions#create", via: [:get, :post]
 
     resources :bulk_downloads
     resources :account_codes
@@ -154,10 +154,10 @@ Rails.application.routes.draw do
         get  :reenable_admin # should be in separate controller
       end
     end
-
+    resources :identities
     # special shortcuts
-
-    get '/login' => 'sessions#create', :as => 'login'
+    get '/create_account' => 'identities#new', :as => 'create_account'
+    get '/login' => 'sessions#new', :as => 'login'
     match '/logout' => 'sessions#destroy', :as => 'logout', :via => [:get, :post]
 
     # Routes for viewing and refunding orders

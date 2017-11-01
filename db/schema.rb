@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171030065519) do
+ActiveRecord::Schema.define(version: 20171101065736) do
 
   create_table "account_codes", force: :cascade do |t|
     t.string "name",        limit: 40,  default: "", null: false
@@ -105,7 +105,12 @@ ActiveRecord::Schema.define(version: 20171030065519) do
     t.string   "password_digest"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
+    t.integer  "customer_id"
+    t.string   "provider"
+    t.string   "uid"
   end
+
+  add_index "identities", ["customer_id"], name: "index_identities_on_customer_id"
 
   create_table "imports", force: :cascade do |t|
     t.string   "name",              limit: 255

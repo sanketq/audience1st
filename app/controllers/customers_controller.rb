@@ -145,9 +145,9 @@ class CustomersController < ApplicationController
 
   def user_create
     @customer = Customer.new(params[:customer])
-    @authorization = Authorization.find(params["authorization"])
-    @authorization.customer = @customer
-    @authorization.save
+    @identity = Identity.find(params["identity"])
+    @identity.customer = @customer
+    @identity.save
     if @gCheckoutInProgress && @customer.day_phone.blank?
       flash[:alert] = "Please provide a contact phone number in case we need to contact you about your order."
       render :action => 'new'

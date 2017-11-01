@@ -1,0 +1,21 @@
+= form_tag '/auth/identity/register' do |f|
+  - if @identity && @identity.errors.any?
+    .error_messages
+    %h2 Uh-oh! We found something wrong with the information you gave us.
+    %ul
+    - @identity.errors.full_messages.each do |msg|
+      %li= msg
+  %h1 Create an Account
+  %label{:for=>:email} Email
+  = text_field_tag 'email', nil, :size => 20
+  %br/
+
+  %label{:for=>:password} Password
+  = password_field_tag 'password', nil, :size => 20
+  %br/
+
+  %label{:for=>:password_confirmation} Confirm Password
+  = password_field_tag 'password_confirmation', nil, :size => 20
+  %br/
+
+  = submit_tag 'Register'

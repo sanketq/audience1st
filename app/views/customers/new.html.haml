@@ -14,7 +14,7 @@
       = submit_tag "Create New Customer Account"
       = link_to 'Cancel', customers_path, :class => 'genButton'
   - else
-    = form_tag user_create_customers_path({:authorization => "#{params["authorization"]}" }) do
+    = form_tag user_create_customers_path({:identity => "#{params["identity"]}" }) do
       = render :partial => 'form', :object => @customer
       - if @gCheckoutInProgress
         = submit_tag 'CONTINUE >>'
