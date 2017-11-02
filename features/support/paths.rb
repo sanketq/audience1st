@@ -21,15 +21,16 @@ module NavigationHelpers
     when /edit contact info page/           then edit_customer_path(@customer)
     when /change password page/i            then change_password_for_customer_path(@customer)
     when /the forgot password page/i        then forgot_password_customers_path
-      # customer donations.  See notes in routes.rb
+    # customer donations.  See notes in routes.rb
     when /the record donation page/         then new_customer_donation_path(@customer)
-    when /the new customer page/i           then new_customer_path
-      # admin-facing voucher management and customer help
+    when /the new customer page/i           then new_identity_path
+    when /the detailed info page for "(.*)"/ then new_customer_path
+    # admin-facing voucher management and customer help
     when /the list of customers page/i      then customers_path
     when /the add comps page/i              then new_customer_voucher_path(@customer)
     when /the transfer vouchers page/i  then customer_vouchers_path(@customer)
     when /the orders page/i             then orders_path(:customer_id => @customer)
-      # store purchase flow
+    # store purchase flow
     when /the order page for that order/ then order_path(@order)
     when /the store page for "(.*)"/    then store_path(:show_id => (@show = Show.find_by_name!($1).id))
     when /the store page/i              then store_path(@customer)
@@ -39,7 +40,7 @@ module NavigationHelpers
     when /the shipping info page/i      then shipping_address_path(@customer)
     when /the checkout page/i           then checkout_path(@customer)
     when /the order confirmation page/i then place_order_path(@customer)
-      # reporting pages 
+    # reporting pages
     when /the quick donation page/      then quick_donate_path
     when /the donations page/i          then '/donations/'
     when /the reports page/i            then '/reports'
@@ -54,7 +55,7 @@ module NavigationHelpers
     when /the admin:(.*) page/i
       page = $1
       case page
-      when /settings/i    then '/options' 
+      when /settings/i    then '/options'
       when /bulk import/i then '/bulk_downloads/new'
       when /import/i      then '/imports/new'
       else                raise "No mapping for admin:#{page}"
@@ -63,7 +64,7 @@ module NavigationHelpers
     when /the show details page for "(.*)"/i then edit_show_path(@show = Show.find_by_name!($1))
     when /the new showdate page for "(.*)"/i then new_show_showdate_path(@show = Show.find_by_name!($1))
 
-    when /the edit showdate page for (.*)/i 
+    when /the edit showdate page for (.*)/i
       @showdate = Showdate.find_by_thedate! Time.parse($1) unless $1 =~ /that performance/
       edit_show_showdate_path(@showdate.show,@showdate)
 

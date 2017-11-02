@@ -1,3 +1,5 @@
+# Reuse for new routes, pondering on abandoning the old one
+
 Feature: Creating an account
 
   As an anonymous customer
@@ -8,7 +10,18 @@ Feature: Creating an account
 
     Given I am not logged in
     And I am on the new customer page
-    And I fill in the following:
+    
+  Scenario: New customer can create an account
+    When I fill in the following:
+      | Email            | john@doe.com  |
+      | Password         | johndoe       |
+      | Confirm Password | johndoe       |
+
+    And I press "Register"
+    Then I should be on the detailed info page for "john@doe.com"
+    And I should see "Fields like this are required."
+
+    Then I fill in the following:
       | First name       | John          |
       | Last name        | Doe           |
       | Street           | 123 Fake St   |
@@ -16,23 +29,18 @@ Feature: Creating an account
       | State            | CA            |
       | Zip              | 94131         |
       | Preferred phone  | 415-555-2222  |
-    
-  Scenario: New customer can create an account
-
-    When I fill in the following:
       | Email            | john@doe.com  |
-      | Password         | johndoe       |
-      | Confirm Password | johndoe       |
+
     And I press "Create My Account"
-    Then I should be on the home page for customer "John Doe"  
-    And I should see "Welcome, John"
+    Then I should see "Welcome, John Doe"
+    And I should see "John Doe's Regular Tickets"
 
   Scenario: New customer cannot create account without providing email address
 
     When I fill in the following:
       | Password         | johndoe       |
       | Confirm Password | johndoe       |
-    And I press "Create My Account"
+    And I press "Register"
     Then account creation should fail with "Email is invalid"
 
   Scenario: New customer cannot create account with invalid email
@@ -41,28 +49,28 @@ Feature: Creating an account
     | Email            | invalid.address |
     | Password         | johndoe         |
     | Confirm Password | johndoe         |
-    And I press "Create My Account"
+    And I press "Register"
     Then account creation should fail with "Email is invalid"
 
-  Scenario: New customer cannot create account with duplicate email
+  #TODO
+  @wip
+  Scenario: New customer cannot create account with duplicate email, pending
 
     Given customer "Tom Foolery" exists
     When I fill in the following:
     | Email            | tom@foolery.com |
     | Password         | tom             |
     | Confirm Password | tom             |
-    And I press "Create My Account"
-    Then account creation should fail with "Email has already been registered"
+    And I press "Register"
+    Then account creation should fail with "Email has already been taken"
     When I follow "Sign in as tom@foolery.com"
-    Then I should be on the login page
-    And the "email" field should be "tom@foolery.com"
 
   Scenario: New customer cannot create account without providing password
 
     When I fill in the following:
     | Email | john@doe.com |
-    And I press "Create My Account"
-    Then account creation should fail with "Password is too short"
+    And I press "Register"
+    Then account creation should fail with "Password can't be blank"
     
   Scenario: New customer cannot create account with mismatched password confirmation
 
@@ -70,7 +78,7 @@ Feature: Creating an account
       | Email            | john@doe.com  |
       | Password         | johndoe       |
       | Confirm Password | johndo        |
-    And I press "Create My Account"
+    And I press "Register"
     Then account creation should fail with "Password confirmation doesn't match"
 
                                             

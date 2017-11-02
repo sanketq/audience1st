@@ -156,7 +156,6 @@ Rails.application.routes.draw do
     end
     resources :identities
     # special shortcuts
-    get '/create_account' => 'identities#new', :as => 'create_account'
     get '/login' => 'sessions#new', :as => 'login'
     match '/logout' => 'sessions#destroy', :as => 'logout', :via => [:get, :post]
 

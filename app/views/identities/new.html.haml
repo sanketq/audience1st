@@ -7,15 +7,15 @@
       %li= msg
   %h1 Create an Account
   %label{:for=>:email} Email
-  = text_field_tag 'email', nil, :size => 20
+  = text_field_tag 'email', nil, {:size => 20, :id => "Email"}
   %br/
 
   %label{:for=>:password} Password
-  = password_field_tag 'password', nil, :size => 20
+  = password_field_tag 'password', nil, {:size => 20, :id => "Password"}
   %br/
 
   %label{:for=>:password_confirmation} Confirm Password
-  = password_field_tag 'password_confirmation', nil, :size => 20
+  = password_field_tag 'password_confirmation', nil, {:size => 20, :id => "Confirm Password"}
   %br/
 
-  = submit_tag 'Register'
+  = submit_tag 'Register', {:id => "Register"}
