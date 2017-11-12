@@ -48,7 +48,7 @@ class Audience1stSeeder
     }
   }
   def self.create_fake_customers
-    (1..1000).each do |n|
+    (1..100).each do |n|
       customer = Customer.new(
           :first_name => Faker::Name.first_name,
           :last_name=> Faker::Name.last_name,
@@ -84,7 +84,7 @@ class Audience1stSeeder
       end
     end
   end
-  
+
   def self.create_default_account_code
     Rails.logger.info "Creating default account code"
     a = AccountCode.first ||
@@ -140,7 +140,6 @@ class Audience1stSeeder
     option.venue_id = 111
     option.venue_shortname = 'testing'
     option.save!
-  end 
+  end
   self.seed_all
 end
-
