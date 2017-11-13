@@ -2,8 +2,6 @@
 source 'https://rubygems.org'
 ruby '2.3.1'
 
-gem 'faker'
-gem 'pg'
 gem 'acts_as_reportable'
 gem 'builder'
 gem 'bundler'
@@ -69,6 +67,7 @@ group :development, :test do
   gem 'chronic'
   gem 'fakeweb'
   gem 'launchy'
+  gem 'faker'
   gem 'rack-test'
   gem 'sdoc', '~> 0.4.0'
   gem 'coveralls', :require => false
