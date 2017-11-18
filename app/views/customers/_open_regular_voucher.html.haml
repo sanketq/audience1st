@@ -12,7 +12,7 @@
         :class => 'showdate', |
         :onchange => %Q{$('#special_seating_#{gid}').slideToggle()} |
       = render :partial => 'special_seating', :locals => {:gid => gid}
-    %td.action= submit_tag 'Click to Confirm', :disable_with => 'Confirming...', :style => "width: 17ex"
+    %td.action= submit_tag 'Click to Confirm', :id => "confirm_#{gid}", :disable_with => 'Confirming...', :style => "width: 17ex"
     %td.admin
 
 - else
