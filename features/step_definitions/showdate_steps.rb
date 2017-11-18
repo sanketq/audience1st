@@ -55,12 +55,16 @@ When /^I delete the showdate "(.*)"$/ do |date|
   steps %Q{When I visit the show details page for "#{showdate.show.name}"}
   click_button "delete_showdate_#{showdate.id}"
 end
-Then /^I should not see the button "(.*)"$/ do |text|
-  page.should_not have_button(text)
+
+Then /^I should (not )?see the button "(.*)"$/ do |nott, text|
+  parent = page.find(".action")
+  if nott.nil?
+    expect(parent).to have_css("#" + text, :visible => true)
+  else
+    expect(parent).to have_css("#" + text, :visible => false)
+  end
 end
-Then /^I should see the button "(.*)"$/ do |text|
-  page.should have_button(text)
-end
+
 Then /^there should be no "Delete" button for the showdate "(.*)"$/ do |date|
   showdate = Showdate.find_by_thedate!(Time.parse date)
   page.should_not have_xpath("//tr[@id='showdate_#{showdate.id}']//input[@type='submit' and @value='Delete']")

@@ -10,9 +10,10 @@
         content_tag(:option, "Select show and date...", :value => 0) + |
         options_from_collection_for_select(group.redeemable_showdates.sort, :showdate_id, :name_and_date_with_capacity_stats), |
         :class => 'showdate', |
-        :onchange => %Q{$('#special_seating_#{gid}').slideToggle()} |
+        :onchange => %Q{hide_or_show()} |
       = render :partial => 'special_seating', :locals => {:gid => gid}
-    %td.action= submit_tag 'Click to Confirm', :id => "confirm_#{gid}", :disable_with => 'Confirming...', :style => "width: 17ex"
+        
+    %td.action= submit_tag 'Click to Confirm', :disable_with => 'Confirming...', :style => "width: 17ex; display: none", :id => 'confirm'
     %td.admin
 
 - else
@@ -21,3 +22,14 @@
   %td= group.name
   %td
   %td
+
+:javascript
+  function hide_or_show() {
+    if (document.getElementById('showdate_id').value == 0) {
+      $('#special_seating_#{gid}').hide(); 
+      $('#confirm').hide();
+    } else {
+      $('#special_seating_#{gid}').show(); 
+      $('#confirm').show();
+    }
+  }
