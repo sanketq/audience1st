@@ -13,7 +13,8 @@ Background: I am logged in as boxoffice
 Scenario: search with multiple match
 
   When I fill "search_field" autocomplete field with "Bagg"
-  Then I should see autocomplete choice "Bilbo Baggins" 
+  Then I should see autocomplete choice "show all"
+  And I should see autocomplete choice "Bilbo Baggins" 
   And I should see autocomplete choice "Frodo Baggins"
   But I should not see autocomplete choice "Bob Bag"
   When I select autocomplete choice "Bilbo Baggins"
@@ -22,7 +23,7 @@ Scenario: search with multiple match
 Scenario: search with no matches
 
   When I fill "search_field" autocomplete field with "xyz"
-  Then I should not see any autocomplete choices
+  Then I should see autocomplete choice "show all"
 
 Scenario:search with other information
   Given the following Customers exist:
@@ -34,7 +35,8 @@ Scenario:search with other information
     | Organ      | Milk      | dancingfox@mail.com | 100 bway      |  SAF | CA    |
 
   When I fill "search_field" autocomplete field with "Fox"
-  Then I should see autocomplete choice "Armando Fox"
+  Then I should see autocomplete choice "show all"
+  And I should see autocomplete choice "Armando Fox"
   And I should see autocomplete choice "Bobby Boxer(123 Fox Hill)"
   And I should see autocomplete choice "Organ Milk(dancingfox@mail.com)"
   But I should not see autocomplete choice "Bob Bag"
