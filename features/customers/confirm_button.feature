@@ -16,8 +16,9 @@ Background: show with at least one available performance
 
 Scenario: button should not appear until showdate selected
 
-  Then I should see "Click to Confirm"
-Scenario: button should  appear after showdate selected
+  Then I should not see the button "Click to Confirm"
+
+Scenario: button should appear after showdate selected
   When I select "2" from "number"
   And I select "Saturday, May 1, 8:00 PM" from "showdate_id"
-  Then I should see "Click to Confirm"
+  Then I should see the button "Click to Confirm"

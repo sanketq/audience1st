@@ -16,7 +16,7 @@ Given /^(\d+) "(.*)" comps are available for "(.*)" on "(.*)"$/ do |num,comp_typ
   @comp = create(:comp_vouchertype, :name => comp_type, :season => show_date.year)
   make_valid_tickets(@showdate, @comp, num)
 end
-                                   
+
 Given /^a performance (?:of "([^\"]+)" )?(?:at|on) (.*)$/ do |name,time|
   time = Time.parse(time)
   name ||= "New Show"
@@ -55,7 +55,12 @@ When /^I delete the showdate "(.*)"$/ do |date|
   steps %Q{When I visit the show details page for "#{showdate.show.name}"}
   click_button "delete_showdate_#{showdate.id}"
 end
-
+Then /^I should not see the button "(.*)"$/ do |text|
+  page.should_not have_button(text)
+end
+Then /^I should see the button "(.*)"$/ do |text|
+  page.should have_button(text)
+end
 Then /^there should be no "Delete" button for the showdate "(.*)"$/ do |date|
   showdate = Showdate.find_by_thedate!(Time.parse date)
   page.should_not have_xpath("//tr[@id='showdate_#{showdate.id}']//input[@type='submit' and @value='Delete']")
