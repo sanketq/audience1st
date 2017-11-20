@@ -16,14 +16,16 @@ class SessionsController < ApplicationController
 
   def create
     create_session do |params|
-      u = Customer.authenticate(params[:email], params[:password])
-      if u.nil? || !u.errors.empty?
+      user = Customer.authenticate(params[:email], params[:password])
+      if user.nil? || !user.errors.empty?
         note_failed_signin(u)
         @email = params[:email]
         @remember_me = params[:remember_me]
         render :action => :new
       end
-      u
+      Identity.create(:email => params[:email],:password => params[:password],
+                      :password_confirmation => params[:password])
+      user
     end
   end
 
