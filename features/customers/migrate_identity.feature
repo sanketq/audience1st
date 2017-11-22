@@ -9,13 +9,10 @@ Background:
   | first_name | last_name | email          | created_by_admin | password | password_confirmation | last_login | updated_at |
   | MaryJane   | Weigandt  | mjw@mail.com   | true             | mary     | mary                  | 2011-01-03 | 2011-01-01 |
   | Janey      | Weigandt  | janey@mail.com | false            | blurgle  | blurgle               | 2010-01-01 | 2010-01-01 |
-  | Janey      | Weigandt  | janey@mail.com | false            | blurgle  | blurgle               | 2010-01-01 | 2010-01-01 |
 
 
 Scenario: Customer will have record in identity after login
-  Given I have never login before with email "mjw@mail.com" and password "mary"
-  And   I cannot login with Identity with password "mary"
-  Then I login with email "mjw@mail.com" and password "mary" in the old way
-  Then I log out
-  And I can login with Identity with email "mjw@mail.com" and password "mary"
-
+  Given   I should not be able to login using Identity with email "mjw@mail.com" and password "mary"
+  Then I should be able to login with username "mjw@mail.com" and password "mary"
+  And I log out
+  Then I should be able to login using Identity with email "mjw@mail.com" and password "mary"

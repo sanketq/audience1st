@@ -9,6 +9,7 @@ module CustomerLoginHelper
     page.should have_css('#customer_quick_search') if @is_admin
   end
 end
+
 World(CustomerLoginHelper)
 
 Given /^I am not logged in$/ do
@@ -35,6 +36,18 @@ Then /^I should be able to login with username "(.*)" and (that password|passwor
   @password = password if use_prev !~ /that/
   @customer = Customer.where('email LIKE ?',username.downcase).first
   verify_successful_login
+end
+
+Then /^I should be not able to login using Identity with username "(.*)" and (that password|password "(.*)")$/ do |username,use_prev,password|
+  @password = password if use_prev !~ /that/
+  @email = username.downcase
+
+end
+
+Then /^I should be able to login using Identity with username "(.*)" and (that password|password "(.*)")$/ do |username,use_prev,password|
+  @password = password if use_prev !~ /that/
+  @email = username.downcase
+  verify_successful_login_with_identity.should be true
 end
 
 Then /(?:customer )"(.*) (.*)" should (not )?be logged in$/ do |first,last,no|

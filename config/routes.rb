@@ -146,6 +146,8 @@ Rails.application.routes.draw do
       end
     end
 
+    #match '/auth/:provider/callback' => "sessions#create", via: [:get, :post]
+
     resource :session, :only => [:new, :create] do
       collection do
         get  :new_from_secret
