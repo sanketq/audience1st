@@ -1,9 +1,15 @@
 Rails.application.routes.draw do
 
+  # :format => false means that this app only returns 'html'
   scope :format => false do
 
     root :to => 'customers#show'
 
+    resources :groups, :except => [:destroy, :edit, :update, :create]
+    post '/groups/create' => 'groups#create', :as => 'create_group'
+    delete '/groups/:id' => 'groups#destroy', :as => 'delete_group'
+    post '/groups/:id/edit' => 'groups#edit', :as => 'edit_group'
+    post '/groups/update_customer_groups/customer_id' => 'groups#update_customer_groups', :as => "update_customer_groups"
     resources :bulk_downloads
     resources :account_codes
     resources :imports, :except => [:show] do
@@ -37,6 +43,7 @@ Rails.application.routes.draw do
       resources :vouchers, :only => [:index, :new, :create] do
         member do
           put :update_comment
+
         end
         collection do
           post :transfer_multiple
@@ -154,7 +161,7 @@ Rails.application.routes.draw do
 
     get '/login' => 'sessions#new', :as => 'login'
     match '/logout' => 'sessions#destroy', :as => 'logout', :via => [:get, :post]
-
+    post '/groups/:id/delete_customers' => 'groups#delete_customer', :as => "delete_customers_from_group"
     # Routes for viewing and refunding orders
     resources :orders, :only => [:index, :show, :update]
 
