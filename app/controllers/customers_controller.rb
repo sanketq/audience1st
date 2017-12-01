@@ -279,8 +279,11 @@ class CustomersController < ApplicationController
     @customers_s =
       Customer.find_by_multiple_terms(s.split( /\s+/)).
           reject {|customer| @customers.include?(customer)}
-    result = @customers.map do |c|
-      {'label' => c.full_name, 'value' => customer_path(c)}
+    session[:customers_filter] = params[:term]
+    result = Array[{'label' => 'show all',
+                    'value' => customers_path(:customers_filter => session[:customers_filter])}]
+    @customers.map do |c|
+      result.push({'label' => c.full_name, 'value' => customer_path(c)})
     end
     customer_hash = Customer.find_by_terms_col(s)
     @customers_s.each do |c|
