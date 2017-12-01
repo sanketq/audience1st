@@ -276,13 +276,30 @@ class CustomersController < ApplicationController
     s = params[:term].to_s
     render :json => {} and return if s.length < 2
     customers = Customer.find_by_name(s.split( /\s+/ ))
-    result = customers.map do |c|
-      {'label' => c.full_name, 'value' => customer_path(c)}
+    
+    result = Array.new
+    count = 0
+    customers.each do |c|
+      result.push({'label' => c.full_name, 'value' => customer_path(c)})
+      count += 1
+      break if count > 1
     end
+    if customers.size > 2
+      result.push({'label' => "(#{customers.size - 2} more name matches)", 'value' => nil})
+    end
+    
     customer_hash = Customer.find_by_terms_col(s)
+    count = 0
     customer_hash.each do |customer, info|
       result.push({'label' => customer.full_name + info, 'value' => customer_path(customer)})
+      count += 1
+      break if count > 1
     end
+    if customer_hash.length > 2
+      result.push({'label' => "(#{customer_hash.size - 2} other matches)", 'value' => nil})
+    end
+    
+    result.push({'label' => 'list all', 'value' => customers_path(:customers_filter => params[:term])})
     render :json => result
   end
 
