@@ -26,12 +26,15 @@ gem 'protected_attributes'      # remove once we migrate to Strong Parameters
 gem 'rails', '4.2.9'            # 4
 gem 'rake'
 gem 'ruport'
+gem 'bcrypt-ruby'
 # stripe depends on rest-client and json, but we can't use the latest version of
 # those until upgrade to ruby >= 1.9.2
 gem 'rest-client'
 gem 'stripe'
 gem 'thor', '0.19.1'
 gem 'will_paginate'
+gem 'omniauth'
+gem 'omniauth-identity'
 group :development do
   gem 'web-console', '~> 2.0'
   gem 'spring'

@@ -1,6 +1,8 @@
 require 'rails_helper'
 
-describe Customer, "merging" do
+# This is to test that 'merge' between two new user(exist before identity)
+# as well as the majority of the funtionalities that 'merge' should provide
+describe Customer, "normal merging" do
   describe "value selection" do
     before(:each) do
       @old = create(:customer)
@@ -194,17 +196,6 @@ describe Customer, "merging" do
       new_labels.should include(l3)
     end
     describe "successfully" do
-      it "should keep password based on most recent" do
-        @old.update_attributes!(:password => 'olderpass', :password_confirmation => 'olderpass')
-        @new.update_attributes!(:password => 'newerpass', :password_confirmation => 'newerpass')
-        salt = @new.salt
-        pass = @new.crypted_password
-        @old.merge_automatically!(@new).should_not be_nil
-        @old.reload
-        @old.crypted_password.should == @old.encrypt('newerpass')
-        @old.salt.should == salt
-        @old.crypted_password.should == pass
-      end
       it "should delete the redundant customer" do
         @old.merge_automatically!(@new).should_not be_nil
         Customer.find_by_id(@new.id).should be_nil

@@ -20,7 +20,7 @@ class Customer < ActiveRecord::Base
   has_many :vouchertypes, :through => :vouchers
   has_many :showdates, :through => :vouchers
   has_many :orders, -> { where( 'sold_on IS NOT NULL').order('sold_on DESC') }
-  
+  has_many :authorizations, dependent: :destroy
   # nested has_many :through doesn't work in Rails 2, so we define a method instead
   # has_many :shows, :through => :showdates
   def shows ; self.showdates.map(&:show).uniq ; end
@@ -33,7 +33,7 @@ class Customer < ActiveRecord::Base
   
   validates_format_of :email, :if => :self_created?, :with => /\A\S+@\S+\z/
 
-  EMAIL_UNIQUENESS_ERROR_MESSAGE = 'has already been registered.'
+  EMAIL_UNIQUENESS_ERROR_MESSAGE = 'has already been taken'
   validates_uniqueness_of :email,
   :allow_blank => true,
   :case_sensitive => false,
@@ -92,7 +92,7 @@ class Customer < ActiveRecord::Base
 
   before_validation :force_valid_fields, :on => :create
   before_save :trim_whitespace_from_user_entered_strings
-  after_save :update_email_subscription
+  after_save :update_email_subscription, :update_identity
 
   before_destroy :cannot_destroy_special_customers
 
@@ -103,18 +103,6 @@ class Customer < ActiveRecord::Base
     now = Time.now
     vouchers.select { |v| now <= Time.at_end_of_season(v.season) }
   end
-  
-
-  #----------------------------------------------------------------------
-  #  private variables
-  #----------------------------------------------------------------------
-
-  private
-
-  def self_created? ; !created_by_admin && !gift_recipient_only ; end
-
-  # for things like daemon-created customers, the force_valid flag will cause a customer
-  # to be created with minimal valid fields so that saving cannot possibly fail validations.
 
   def force_valid_fields
     if self.force_valid
@@ -127,6 +115,35 @@ class Customer < ActiveRecord::Base
     end
     true
   end
+
+  def update_identity
+    Authorization.update_identity_email(self) if email_changed? && bcrypted?
+  end
+
+  # def password=(password)
+  #   puts "password: "
+  #   puts password
+  #   if respond_to?("password=")
+  #     puts "responds to password="
+  #     @password = password
+  #     puts "bcrypted" if bcrypted?
+  #     Authorization.update_password(self, password) if bcrypted?      
+  #   else
+  #     raise NotImplementedError 
+  #   end
+  # end
+  #----------------------------------------------------------------------
+  #  private variables
+  #----------------------------------------------------------------------
+
+  private
+
+  def self_created? ; !created_by_admin && !gift_recipient_only ; end
+
+  # for things like daemon-created customers, the force_valid flag will cause a customer
+  # to be created with minimal valid fields so that saving cannot possibly fail validations.
+
+  
     
   def valid_and_unique(email)
     if email.blank?
@@ -234,7 +251,7 @@ class Customer < ActiveRecord::Base
     self.set_labels(hash)
     self.save! 
   end
-  
+
   def valid_as_gift_recipient?
     # must have first and last name, mailing addr, and at least one
     #  phone or email
@@ -374,6 +391,12 @@ class Customer < ActiveRecord::Base
     return u
   end
 
+  def add_provider(auth)
+    unless authorizations.find_by_provider_and_uid(auth["provider"], auth["uid"])
+      Authorization.create :user => self, :provider => auth["provider"], :uid => auth["uid"] 
+    end
+  end
+
   # Values of the role field:
   # Roles are cumulative, ie higher privilege level can do everything
   # the lower levels can do.
@@ -471,6 +494,10 @@ EOSQL1
 
 
 
+  def identity
+    Authorization.find_by(provider: "identity", customer: self)
+  end
+
   # If customer can be uniquely identified in DB, return match from DB
   # and fill in blank attributes with nonblank values from provided attrs.
   # Otherwise, create new customer.
@@ -490,7 +517,8 @@ EOSQL1
     # precaution: make sure email is unique.
     c.email = nil if (!c.email.blank? &&
       Customer.where('email like ?',c.email.downcase).first)
-    c.save!
+    c.save!   
+    c.bcrypt_password_storage(c.password)
     Txn.add_audit_record(:txn_type => 'edit',
       :customer_id => c.id,
       :comments => txn,

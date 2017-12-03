@@ -18,7 +18,7 @@ describe Customer, 'authentication' do
   # Authentication
   #
 
-  it 'authenticates user' do
+  it 'authenticates user using old method' do
     Customer.authenticate(@quentin.email, 'monkey').should == @quentin
     Customer.authenticate(@quentin.email, 'monkey').errors.should be_empty
   end
@@ -32,12 +32,6 @@ describe Customer, 'authentication' do
       Customer.authenticate('asdkfljhadf@email.com', 'pass').errors[:login_failed].
         should include_match_for(/can't find that email/i)
     end
-  end
-
-  # old-school passwords
-  it "authenticates a user against a hard-coded old-style password" do
-    old_password_holder = create :customer, email: 'salty_dog@example.com', salt: '7e3041ebc2fc05a40c60028e2c4901a81035d3cd', crypted_password: '00742970dc9e6319f8019fd54864d3ea740f04b1', created_at: 1.day.ago
-    Customer.authenticate(old_password_holder.email, 'test').should == old_password_holder
   end
 
   # New installs should bump this up and set REST_AUTH_DIGEST_STRETCHES to give a 10ms encrypt time or so
