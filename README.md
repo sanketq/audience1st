@@ -52,7 +52,83 @@ constant_contact_secret: "CC secret part of API key"
 
 Deploy the app as you would a normal Rails app, including running the migrations to load up `schema.rb`.  Only portable SQL features are used, so although MySQL was used to develop Audience1st, any major SQL database **that supports nested transactions** should work.  (SQLite does not support nested transactions, and as such, some tests that simulate network errors during credit card processing may appear to fail if you run all the specs locally against SQLite.)
 
-Then run the task `rake db:seed` on the production database, which creates a few special users, including the administrative user `admin@audience1st.com` with password `admin`.
+Steps to Deploy Audience1st
+ 
+Setting up the local environment
+1.      Fork the rep
+2.      Clone your new repo
+3.      Add a new file config/database.yml that has
+test:
+  adapter: sqlite3
+  database: db/test.sqlite3
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+4.      Add a new file config/application.yml that looks something like this
+test:
+  session_secret: [session key here]
+  stripe_key: [strike key here]
+  stripe_secret: [stripe secret here]
+development:
+  session_secret: [session key here]
+  stripe_key: [strike key here]
+  stripe_secret: [stripe secret here]
+filling actual values where it says [some key/secret here]
+5.      Create a new file config/application.yml.asc (note: this step is only necessary if you are planning to deploy to heroku or use travis/codeclimate)
+a.      sudo apt-get install pwgen (or brew install pwgen)
+b.      pwgen 30 1
+           i. save this generated password
+c.      sudo apt-get install gpg (or brew install)
+d.      gpg -c -a config/application.yml
+                             i. use the previously generated password when it prompts you for a password
+e.      When it’s time to set up travis, you should set this generated password as a travis environment variable CCKEY
+6.      Add a new file public/stylesheet/venue/default.css
+a.      Go to https://www.audience1st.com/altarena/login
+b.      Right-click -> inspect element
+c.      Go to the sources tab
+d.      altarena -> stylesheets -> venue -> default.css
+e.      copy that css into the new file
+7.      Add a new file public/stylesheet/venue/altarena_banner.png
+a.      This file is needed for the tests to pass but it doesn’t matter what the image actually is. Maybe a picture of your cat?
+8.      Install sqlite3 and dependencies
+9.      Install phantomjs
+a.      For Mac: brew install phantomjs
+b.      For Windows Bash Subsystem: phantomjs will not install correctly. Windows subsystem users in our group were forced to use a ubuntu vm for this project to get tests to pass
+c.      For Ubuntu:  the apt-get repo will not work
+                                                    i. Go here https://github.com/teampoltergeist/poltergeist and scroll down to the section on phantomjs to get the 32-bit or 64-bit binaries
+                                                   ii. Untar the file using: tar xvjf file.tar.bz2
+                                                  iii. Rename file to:  .phantomjs
+                                                  iv. Move it to home with: mv .phantomjs to ~/
+                                                   v. Add it to path with:
+1. echo 'export PATH="$HOME/.phantomjs/bin:$PATH"' >> ~/.bashrc
+2. exec $SHELL
+10.   go to the audience1st folder and run basic rails startups
+a.      bundle install
+b.      bundle exec rake db:setup
+11.   Celebrate!
+ 
+Setting up Heroku
+
+Go to your branch folder
+run heroku create
+If not pushing master branch, run git push (remote name for heroku) (branch name):master 
+You need to switch the database, since sqlite does not work with heroku. Postgres currently doesn’t work due to a bug in the schema, may change later. We used mysql2 to deploy. You need to add the following lines into your gemfile (you may have to change the version #):
+
+group :production do
+  gem 'mysql2', '~> 0.3.18'
+end
+
+You also need to add a mysqladdon for heroku. We used cleardb. Note that if you use cleardb’s free plan, there is a query limit. You may have to wait a few hours after deploying to actually use the app. 
+Your database_url config var needs to be correct in order to work. Go to reveal config vars in heroku console, you should see CLEARDB_DATABASE_URL mysql://somestring. 
+Make a new variable called DATABASE_URL mysql2://samestring.
+You also need to put in values for session_secret, stripe_key, stripe_secret, RAILS_ENV, RACK_ENV, and KEY
+Run the following command to setup the database:
+heroku run rake db:setup --remote (heroku remote name)
+If you get an error #500, you need to restart your dynos. 
+Congrats, it should work now. 
+
+
+There should be a few special users, including the administrative user `admin@audience1st.com` with password `admin`.
 
 The app should now be up and running; login and change the administrator password.  Later you can designate other users as administrators.
 
