@@ -24,6 +24,8 @@ Scenario: search with no matches
 
   When I fill "search_field" autocomplete field with "xyz"
   Then I should see autocomplete choice "list all"
+  When I select autocomplete choice "list all"
+  Then I should be on the list of customers page
 
 Scenario:search with other information
   Given the following Customers exist:
