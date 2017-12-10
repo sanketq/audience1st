@@ -1,3 +1,4 @@
+/ = form_tag '/auth/identity/register' do
 %h1.page_heading.center= @gCheckoutInProgress ? 'Billing Information' : 'Create Your Account'
 
 #inner_wrapper
@@ -5,18 +6,19 @@
     Subscribers, please
     = link_to 'sign in', login_path
     to use your existing billing information.
-
   - if @is_admin
     = form_tag customers_path do
       = render :partial => 'form', :object => @customer
       = render :partial => 'password' 
       = render :partial => 'form_admin'
+      = hidden_field_tag :callback_type, "admin"
       = submit_tag "Create New Customer Account"
       = link_to 'Cancel', customers_path, :class => 'genButton'
   - else
     = form_tag user_create_customers_path do
       = render :partial => 'form', :object => @customer
       = render :partial => 'password'
+      = hidden_field_tag :callback_type, "customer"
       - if @gCheckoutInProgress
         = submit_tag 'CONTINUE >>'
         = link_to 'Cancel', store_path, :class => 'genButton'

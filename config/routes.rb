@@ -153,9 +153,16 @@ Rails.application.routes.draw do
     end
 
     # special shortcuts
-
     get '/login' => 'sessions#new', :as => 'login'
     match '/logout' => 'sessions#destroy', :as => 'logout', :via => [:get, :post]
+    match '/auth/:provider/callback', to: 'customers#user_create', via: [:get, :post],
+      constraints: lambda { |request| request.request_parameters[:callback_type] == "customer" }
+    match '/auth/:provider/callback', :to => 'customers#create', :via => [:get, :post],
+      constraints: lambda { |request| request.request_parameters[:callback_type] == "admin" }
+    match '/auth/:provider/callback', :to => 'sessions#create', :via => [:get, :post],
+      constraints: lambda { |request| request.request_parameters[:callback_type] == "login" }
+    # match 'auth/:provider/callback', :to => 'sessions#create', :via => [:get, :post]
+    match 'auth/failure', :to => 'sessions#failure', :via => [:get, :post]
 
     # Routes for viewing and refunding orders
     resources :orders, :only => [:index, :show, :update]

@@ -9,6 +9,27 @@ describe SessionsController do
     @user  = create(:customer)
     @login_params = { :email => 'quentin@email.com', :password => 'test' }
     allow(Customer).to receive(:authenticate).with(@login_params[:email], @login_params[:password]).and_return(@user)
+    allow(@user).to receive(:bcrypted?).and_return(true)
+  end
+  it "links existing users to omniauth accounts" do
+    request.env['omniauth.auth'] = "env"
+    (@controller).stub(:logged_in?).and_return(true)
+    (@controller).stub(:current_user).and_return(@user)
+    expect(@user).to receive(:add_provider).with("env").and_return(nil)
+    post(:create, @login_params)
+  end
+  it "creates or finds non-identity omniauth accounts" do
+    request.env['omniauth.auth'] = "env"
+    (@controller).stub(:logged_in?).and_return(false)
+    expect(Authorization).to receive(:find_or_create_user).with("env")
+    post(:create, @login_params)
+  end
+
+  it "bcrypts passwords if necessary" do
+    # (@controller).stub(:u).and_return(@user)
+    allow(@user).to receive(:bcrypted?).and_return(false)
+    expect(@user).to receive(:bcrypt_password_storage).at_least(:once).with(anything()).and_return(nil)
+    post(:create, @login_params)
   end
   # Login for an admin
   describe 'admin view' do
@@ -92,6 +113,7 @@ describe SessionsController do
   
   describe "on failed login" do
     before do
+      var = 4
       expect(Customer).to receive(:authenticate).with(anything(), anything()).and_return(nil)
       login_as create(:customer, :email => 'quentin@email.com')
     end

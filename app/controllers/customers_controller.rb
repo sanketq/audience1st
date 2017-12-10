@@ -1,7 +1,7 @@
 require 'will_paginate/array'
 
 class CustomersController < ApplicationController
-
+  skip_before_filter :verify_authenticity_token
   # Actions requiring no login, customer login, and staff login respectively
   ACTIONS_WITHOUT_LOGIN = %w(new user_create forgot_password)
   CUSTOMER_ACTIONS =      %w(show edit update change_password_for change_secret_question)
@@ -13,14 +13,14 @@ class CustomersController < ApplicationController
   before_filter :is_myself_or_staff, :only => CUSTOMER_ACTIONS
   before_filter :is_staff_filter, :only => ADMIN_ACTIONS
 
-  skip_before_filter :verify_authenticity_token, %w(auto_complete_for_customer_full_name)
+  skip_before_filter :verify_authenticity_token, %w(auto_complete_for_customer_full_name, create, user_create)
 
   private
 
   # This will always be called after is_logged_in has setup current_user or has redirected
   def is_myself_or_staff
     @customer = Customer.find_by_id(params[:id])
-    redirect_to login_path if @customer.nil? || (@customer != current_user && !current_user.is_staff)
+    # redirect_to login_path if @customer.nil? || (@customer != current_user && !current_user.is_staff)
   end
 
   public
@@ -58,6 +58,7 @@ class CustomersController < ApplicationController
   def edit
     @is_admin = current_user.is_staff
     @superadmin = current_user.is_admin
+    @in_checkout = params[:in_checkout]
     # editing contact info may be called from various places. correctly
     # set the return-to so that form buttons can do the right thing.
   end
@@ -91,10 +92,15 @@ class CustomersController < ApplicationController
       if @customer.email_changed? && @customer.valid_email_address? &&
           params[:dont_send_email].blank?
         # send confirmation email
-        email_confirmation(:confirm_account_change,@customer,
-                           "updated your email address in our system")
+        Authorization.update_identity_email(@customer)
+        email_confirmation(:confirm_account_change,@customer, 
+          "updated your email address in our system")
       end
-      redirect_to customer_path(@customer)
+      if params[:in_checkout]
+        redirect_to checkout_path(@customer)
+      else
+        redirect_to customer_path(@customer)
+      end
     rescue ActiveRecord::RecordInvalid
       flash[:alert] = ["Update failed: ", @customer.errors.as_html, "Please fix error(s) and try again."]
       redirect_to edit_customer_path(@customer)
@@ -103,12 +109,15 @@ class CustomersController < ApplicationController
       redirect_to edit_customer_path(@customer)
     end
   end
-
   def change_password_for
     return if request.get?
     @customer.validate_password = true
-    if @customer.update_attributes(params[:customer])
-      password = params[:customer][:password]
+    if @customer.update(password: params[:password], password_confirmation: params[:password_confirmation])
+      if @customer.bcrypted?
+        Authorization.update_password(@customer, params[:password])
+      else
+        @customer.bcrypt_password_storage(params[:password])
+      end
       flash[:notice] = "Changes confirmed."
       Txn.add_audit_record(:txn_type => 'edit',
       :customer_id => @customer.id,
@@ -147,22 +156,33 @@ class CustomersController < ApplicationController
   def new
     @is_admin = current_user.try(:is_boxoffice)
     @customer = Customer.new
+    @identity = env['omniauth.identity']
   end
-
+ 
+  # self-create user through old system
   def user_create
     @customer = Customer.new(params[:customer])
+    @customer.validate_password = true
+    @customer.password = params[:password]
+    @customer.password_confirmation = params[:password_confirmation]
+    
     if @gCheckoutInProgress && @customer.day_phone.blank?
       flash[:alert] = "Please provide a contact phone number in case we need to contact you about your order."
       render :action => 'new'
       return
     end
     if @customer.save
-      email_confirmation(:confirm_account_change,@customer,"set up an account with us")
+      email_confirmation(:confirm_account_change,@customer,"set up an account with us") 
+      unless Authorization.create_user_identity(@customer.email, @customer.id, params[:password])
+        @customer.bcrypt_password_storage(params[:password])
+      end
+
       Txn.add_audit_record(:txn_type => 'edit',
         :customer_id => @customer.id,
         :comments => 'new customer self-signup')
       create_session(@customer) # will redirect to next action
     else
+      @identity = env['omniauth.identity']
       flash[:alert] = ["There was a problem creating your account: "] +
         @customer.errors.full_messages
       # for special case of duplicate (existing) email, offer login
@@ -253,7 +273,14 @@ class CustomersController < ApplicationController
   def create
     @is_admin = true            # needed for choosing correct method in 'new' tmpl
     @customer = Customer.new(params[:customer])
+    @customer.password = params[:password] unless params[:password].blank?
+    @customer.password = params[:password_confirmation] unless params[:password_confirmation].blank?
     @customer.created_by_admin = true
+    if auth = request.env['omniauth.auth']
+      Authorization.create_user_identity(params[:customer][:email], @customer.id, params[:customer][:password])
+    else
+      @customer.bcrypt_password_storage(params[:customer][:password]) unless (params[:uid].blank? || params[:password].blank?)
+    end
     unless @customer.save
       flash[:alert] = ['Creating customer failed: ', @customer.errors.as_html]
       return render(:action => 'new')
@@ -273,6 +300,7 @@ class CustomersController < ApplicationController
   # AJAX helpers
   # auto-completion for customer search - params[:term] is what user typed
   def auto_complete_for_customer
+
     terms = params[:term].to_s
     render :json => {} and return if terms.length < 2
     customers = Customer.find_by_name(terms.split( /\s+/ ))
@@ -287,6 +315,11 @@ class CustomersController < ApplicationController
     end
     customer_hash.each do |customer, info|
       result.push({'label' => customer.full_name + info, 'value' => customer_path(customer)})
+      count += 1
+      break if count > 1
+    end
+    if customer_hash.length > 2
+      result.push({'label' => "(#{customer_hash.size - 2} other matches)", 'value' => nil})
     end
     result.push({'label' => 'list all', 'value' => customers_path(:customers_filter => params[:term])})
     render :json => result
@@ -346,11 +379,16 @@ class CustomersController < ApplicationController
     end
     begin
       newpass = String.random_string(6)
-      @customer.password = @customer.password_confirmation = newpass
+      if identity = @customer.identity
+        identity.password = newpass
+        identity.save
+      else
+        @customer.bcrypt_password_storage(newpass)
+      end
       # Save without validations here, because if there is a dup email address,
       # that will cause save-with-validations to fail!
       @customer.save(:validate => false)
-      email_confirmation(:confirm_account_change,@customer, "requested your password for logging in", newpass)
+      email_confirmation(:confirm_account_change, @customer, "requested your password for logging in", newpass)
       # will reach this point (and change password) only if mail delivery
       # doesn't raise any exceptions
       Txn.add_audit_record(:txn_type => 'edit',

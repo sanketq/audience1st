@@ -1,4 +1,5 @@
 class SessionsController < ApplicationController
+  skip_before_filter :verify_authenticity_token, %w(create)
 
   def new
     redirect_to customer_path(current_user) and return if logged_in?
@@ -16,14 +17,34 @@ class SessionsController < ApplicationController
 
   def create
     create_session do |params|
-      u = Customer.authenticate(params[:email], params[:password])
-      if u.nil? || !u.errors.empty?
-        note_failed_signin(u)
+      auth = request.env['omniauth.auth']
+      if auth
+        if logged_in?
+          current_user.add_provider(auth) #if customer is logged in, add new auth to their account
+          @u = current_user
+        else
+          # identity is a special case
+          if params[:provider] == "identity"           
+            # login/create using omniauth
+            @u = Authorization.find_by(uid: params[:email], provider: params[:provider]).customer
+          else
+            # otherwise login using an existing auth or create a new account using a regular omniauth strategy
+            @u = Authorization.find_or_create_user(auth)                               
+          end
+        end
+      else
+        # log in the old way and create an identity
+        @u = Customer.authenticate(params[:email], params[:password])
+        @u.bcrypt_password_storage(params[:password]) if @u && @u.errors.empty? && !@u.bcrypted? 
+      end
+
+      if @u.nil? || !@u.errors.empty?
+        note_failed_signin(@u)
         @email = params[:email]
         @remember_me = params[:remember_me]
         render :action => :new
       end
-      u
+      @u
     end
   end
 
@@ -61,6 +82,9 @@ class SessionsController < ApplicationController
     redirect_to :back
   end
   
+  def failure
+    redirect_to login_path, alert: "Sorry, incorrect Email/Password" 
+  end
 
   protected
   

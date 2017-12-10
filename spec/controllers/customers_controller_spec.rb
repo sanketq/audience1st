@@ -24,7 +24,7 @@ describe CustomersController do
     before(:each) do
       @params = attributes_for(:customer)
       login_as(nil)
-      post :user_create, {:customer => @params}
+      post :user_create, {:customer => @params, :password => "pass", :password_confirmation => "pass", :uid => @params[:email]}
     end
     it "should create the customer" do
       Customer.find_by_email(@params[:email]).should_not be_nil
@@ -64,9 +64,6 @@ describe CustomersController do
         params = {:id => @customer, :customer => {:street => "100 Embarcadero",   :zip => "94100",
             :email => "nobody@noplace.com"}}
         put :update, params
-      end
-      it "should not update the password" do
-        @customer.crypted_password_changed?.should be_falsey
       end
       it "should update the address" do
         @customer.reload
